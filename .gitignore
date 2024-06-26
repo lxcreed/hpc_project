@@ -1,0 +1,7 @@
+dataset/*
+data/*
+third_party/*
+my_net.pth
+dist_training_checkpoint/*
+__pycache__
+dist_training_model.pth
