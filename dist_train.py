@@ -1,3 +1,4 @@
+import time
 import deepspeed
 import torch
 import torch.utils
@@ -134,21 +135,25 @@ model_engine, optimizer, trainloader, _ = deepspeed.initialize(
     args=args, model=my_net, model_parameters=parameters, training_data=train_dataset
 )
 
+if model_engine.local_rank == 0:
+    start_time = time.time()
 
-for i, data in enumerate(trainloader, 0):
-    inputs: torch.Tensor = data[0].to(model_engine.device)
-    labels: torch.Tensor = data[1].to(model_engine.device)
+for epoch in range(3):
+    for i, data in enumerate(trainloader, 0):
+        inputs: torch.Tensor = data[0].to(model_engine.device)
+        labels: torch.Tensor = data[1].to(model_engine.device)
 
-    outputs: torch.Tensor = model_engine(inputs)
-    loss: torch.Tensor = criterion(outputs, labels)
+        outputs: torch.Tensor = model_engine(inputs)
+        loss: torch.Tensor = criterion(outputs, labels)
 
-    model_engine.backward(loss)
-    model_engine.step()
+        model_engine.backward(loss)
+        model_engine.step()
 
-print(f'Finished Training')
+print(f"Finished Training")
+
+if model_engine.local_rank == 0:
+    print(f"Training using {model_engine.world_size} processes took {time.time() - start_time: .3f} seconds")
 
 
 model_engine.save_checkpoint(save_dir="./dist_training_checkpoint")
 torch.save(my_net.state_dict(), "./dist_training_model.pth")
-
-

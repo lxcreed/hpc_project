@@ -1,3 +1,4 @@
+import time
 import deepspeed
 import torch
 import torch.utils
@@ -162,5 +163,3 @@ if __name__ == "__main__":
 
     PATH = "./my_net.pth"
     torch.save(my_net.state_dict(), PATH)
-
-
